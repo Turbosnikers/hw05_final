@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %} Последние обновления на сайте  {% endblock  %}
+{% block content %}
+{% include 'posts/includes/switcher.html' %}
+{% load thumbnail %}
+  {% for post in page_obj %} 
+    <strong>Пост номер {{ post.pk }}</strong>
+    <br/><br/>
+    <p>{{ post.text|linebreaksbr }}</p>
+    {% thumbnail post.image "960x339" crop="center" upscale=True as im %}
+      <img class="card-img my-2" src="{{ im.url }}">
+    {% endthumbnail %}
+    <article>
+      {% include 'posts/includes/body.html' %} 
+    </article>
+    <ul>
+      <a href={% url 'posts:post_detail' post.pk %}> Подробнее</a>
+    </ul>
+    <hr>
+    
+    {% if not post.comments.all %}
+      У этого поста еще нет комментариев
+      <p><a href={% url 'posts:add_comment' post.pk %}> Оставить первый комментарий</a>
+    {% else %}
+    <strong>
+      Комментарии:
+    </strong>
+      {% for comment in post.comments.all %}
+        <p>
+          {{ comment.date_added }}
+        </p>
+          {{ comment.text }}
+      {% endfor %}
+    {% endif %}
+    {% if post.group %}
+      <p><a href="{% url 'posts:group_list' post.group.slug %}">Все записи группы "{{ post.group.title }}"</a></p>
+    {% endif%}
+    {% if user.is_authenticated and user == post.author %}
+    <p>
+      <a href={% url 'posts:post_edit' post.pk %}> Редактировать запись</a>
+    </p>
+    {% endif %}
+    {% if not forloop.last %}<hr>
+    {% endif %}
+  {% endfor %}
+
+  {% include 'includes/paginator.html' %}
+
+{% endblock %}
