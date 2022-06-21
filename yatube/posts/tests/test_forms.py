@@ -81,7 +81,7 @@ class PostCreateFormTests(TestCase):
             'image': self.uploaded
         }
         self.response = self.authorized_client.post(
-            reverse('posts:create_post'),
+            reverse('posts:post_create'),
             data=form_data,
             follow=True
         )

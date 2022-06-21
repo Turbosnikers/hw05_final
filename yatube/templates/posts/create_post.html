@@ -37,7 +37,7 @@
             {% if is_edit %}
               "{% url 'posts:post_edit' post.pk %}"
               {% else %} 
-              "{% url 'posts:create_post' %}"
+              "{% url 'posts:post_create' %}"
             {% endif %}>
           {% for field in form %} 
             <div class="form-group row my-3">

@@ -250,7 +250,7 @@ class Sprint_final_tests(TestCase):
             follow=True
         )
         self.client_blogger.post(
-            reverse('posts:create_post'),
+            reverse('posts:post_create'),
             {'text': 'for followers'},
             follow=True
         )
@@ -268,7 +268,7 @@ class Sprint_final_tests(TestCase):
 
     def test_cache(self):
         self.client.post(
-            reverse('posts:create_post'),
+            reverse('posts:post_create'),
             {'text': 'Пост для проверки кэша'}
         )
         response_index = self.client.get(reverse('posts:index'))
