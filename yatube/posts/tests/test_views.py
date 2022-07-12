@@ -32,7 +32,7 @@ class PostPagesTests(TestCase):
             )
             for num in range(1, 21)]
         )
-        cls.post = Post.objects.all()[0]
+        cls.post = Post.objects.get(id=1)
         cls.follower = User.objects.create_user(
             username='testfollower',
             email='testfollower@test.ru',
