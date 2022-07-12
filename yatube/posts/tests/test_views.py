@@ -316,7 +316,7 @@ class Sprint_final_tests(TestCase):
                 response = self.client.get(url)
                 paginator = response.context.get('paginator')
                 if paginator is not None:
-                    post = response.context['page'][0]
+                    post = paginator.get_page(0)
                 else:
                     if url == post_detail_url:
                         post = response.context['post']
@@ -345,7 +345,7 @@ class PaginatorViewsTest(TestCase):
         )
 
     def test_first_page_contains_ten_records(self):
-        response = self.client.get(reverse('posts:index'))
+        response = self.client.get(reverse('posts:index') + '?page=1')
         self.assertEqual(len(response.context['page_obj']), POSTS_COUNT)
 
     def test_second_page_contains_three_records(self):
