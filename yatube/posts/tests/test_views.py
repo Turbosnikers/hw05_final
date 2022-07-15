@@ -163,6 +163,52 @@ class PostPagesTests(TestCase):
         self.assertEqual(group_description_test, group_description)
         self.assertEqual(group_slug_test, group_slug)
 
+    def test_unauth_comments(self):
+        post_id = PostPagesTests.post.id
+        self.text = 'Test comments'
+        response = self.client.get(reverse(
+            'posts:add_comment', kwargs={'post_id': post_id}),
+            {'text': 'Comment'}
+        )
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+        self.assertEqual(Comment.objects.count(), 0)
+
+
+class FollowTests(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.user = User.objects.create_user(username='auth_user')
+        cls.group = Group.objects.create(
+            title='Текст поста',
+            slug='test_slug',
+            description='Описание поста'
+        )
+        cls.group2 = Group.objects.create(
+            title='Текст поста',
+            slug='test_slug2',
+            description='Описание поста'
+        )
+        Post.objects.bulk_create([
+            Post(
+                author=cls.user,
+                text=f'Тестовый текст {num}',
+                group=cls.group
+            )
+            for num in range(1, 21)]
+        )
+        cls.post = Post.objects.get(id=1)
+        cls.follower = User.objects.create_user(
+            username='testfollower',
+            email='testfollower@test.ru',
+            password='testpass1'
+        )
+        cls.following = User.objects.create_user(
+            username='testfollowing',
+            email='testfollowing@test.ru',
+            password='testpass2'
+        )
+
     def test_follow(self):
         self.client.force_login(self.follower)
         self.client.post(reverse(
@@ -204,16 +250,6 @@ class PostPagesTests(TestCase):
         ).exists()
         self.assertFalse(unfollow_client)
         self.assertEqual(Follow.objects.all().count(), 0)
-
-    def test_unauth_comments(self):
-        post_id = PostPagesTests.post.id
-        self.text = 'Test comments'
-        response = self.client.get(reverse(
-            'posts:add_comment', kwargs={'post_id': post_id}),
-            {'text': 'Comment'}
-        )
-        self.assertEqual(response.status_code, HTTPStatus.FOUND)
-        self.assertEqual(Comment.objects.count(), 0)
 
 
 class Sprint_final_tests(TestCase):
