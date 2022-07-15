@@ -178,50 +178,31 @@ class FollowTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.user = User.objects.create_user(username='auth_user')
-        cls.group = Group.objects.create(
-            title='Текст поста',
-            slug='test_slug',
-            description='Описание поста'
-        )
-        cls.group2 = Group.objects.create(
-            title='Текст поста',
-            slug='test_slug2',
-            description='Описание поста'
-        )
-        Post.objects.bulk_create([
-            Post(
-                author=cls.user,
-                text=f'Тестовый текст {num}',
-                group=cls.group
-            )
-            for num in range(1, 21)]
-        )
-        cls.post = Post.objects.get(id=1)
         cls.follower = User.objects.create_user(
             username='testfollower',
-            email='testfollower@test.ru',
-            password='testpass1'
         )
         cls.following = User.objects.create_user(
             username='testfollowing',
-            email='testfollowing@test.ru',
-            password='testpass2'
+        )
+        cls.post = Post.objects.create(
+            author=cls.following,
+            text='Тестовый текст',
         )
 
+    def setUp(self):
+        self.following_client = Client()
+        self.follower_client = Client()
+        self.following_client.force_login(self.following)
+        self.follower_client.force_login(self.follower)
+
     def test_follow(self):
-        self.client.force_login(self.follower)
-        self.client.post(reverse(
+        follower_count = Follow.objects.count()
+        self.follower_client.get(reverse(
             'posts:profile_follow',
-            kwargs={'username': self.following.username}
-        ))
-        follow_client = Follow.objects.filter(
-            author=self.following, user=self.follower
-        ).exists()
-        self.assertTrue(follow_client)
+            args=(self.following.username,)))
+        self.assertEqual(Follow.objects.count(), follower_count + 1)
 
     def test_self_follow(self):
-        self.client.force_login(self.follower)
         url_profile_follow = reverse(
             'posts:profile_follow',
             kwargs={'username': self.follower.username}
@@ -231,25 +212,15 @@ class FollowTests(TestCase):
         self.assertEqual(Follow.objects.all().count(), 0)
 
     def test_unfollow(self):
-        self.client.force_login(self.follower)
-        self.client.post(reverse(
-            'posts:profile_follow',
-            kwargs={'username': self.following.username}
-        ))
-        follow_client = Follow.objects.filter(
-            author=self.following, user=self.follower
-        ).exists()
-        self.assertTrue(follow_client)
-        self.assertEqual(Follow.objects.all().count(), 1)
-        self.client.get(reverse(
+        Follow.objects.create(
+            user=self.follower,
+            author=self.following
+        )
+        follower_count = Follow.objects.count()
+        self.follower_client.get(reverse(
             'posts:profile_unfollow',
-            kwargs={'username': self.following.username}
-        ))
-        unfollow_client = Follow.objects.filter(
-            author=self.following, user=self.follower
-        ).exists()
-        self.assertFalse(unfollow_client)
-        self.assertEqual(Follow.objects.all().count(), 0)
+            args=(self.following.username,)))
+        self.assertEqual(Follow.objects.count(), follower_count - 1)
 
 
 class Sprint_final_tests(TestCase):
